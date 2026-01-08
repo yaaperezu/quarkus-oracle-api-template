@@ -167,6 +167,7 @@ Dado que la generación automática está desactivada (action=validate), ejecuta
 ```sql
 -- Creación de secuencia para IDs (Requerida por PanacheEntity)
 CREATE SEQUENCE hibernate_sequence START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE usuarios_SEQ START WITH 1 INCREMENT BY 50;
 
 -- Tabla de gestión de usuarios
 CREATE TABLE USUARIOS (
