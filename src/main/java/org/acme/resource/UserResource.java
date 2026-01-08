@@ -5,6 +5,7 @@ import org.acme.service.UserService;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import jakarta.inject.Inject;
+import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -28,7 +29,7 @@ public class UserResource {
 
     @POST
     @Operation(summary = "Crear usuario")
-    public Response create(UserDTO userDTO) {
+    public Response create(@Valid UserDTO userDTO) {
         UserDTO created = userService.createUser(userDTO);
         return Response.status(Response.Status.CREATED).entity(created).build();
     }
