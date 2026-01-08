@@ -1,24 +1,22 @@
 package org.acme.service;
 
-import org.acme.dto.UserDTO;
+import org.acme.entity.UserEntity;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.transaction.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 @ApplicationScoped
 public class UserService {
-    // Simulación de base de datos en memoria
-    private List<UserDTO> users = new ArrayList<>();
 
-    public List<UserDTO> getAllUsers() {
-        return users;
+    public List<UserEntity> getAllUsers() {
+        return UserEntity.listAll();
     }
 
-    public UserDTO createUser(UserDTO user) {
-        var newUser = new UserDTO(UUID.randomUUID(), user.username(), user.email(), user.role());
-        users.add(newUser);
-        return newUser;
+    @Transactional
+    public UserEntity createUser(UserEntity user) {
+        // Persiste el objeto directamente en la base de datos Oracle
+        user.persist();
+        return user;
     }
 }

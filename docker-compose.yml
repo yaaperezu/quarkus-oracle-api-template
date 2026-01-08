@@ -1,0 +1,22 @@
+services:
+  oracle-db:
+    # Esta imagen tiene versión nativa para Mac M1/M2/M3
+    image: gvenzl/oracle-free:latest
+    container_name: oracle-db-free
+    ports:
+      - "1521:1521"
+    environment:
+      - ORACLE_PASSWORD=myPassword123
+      - APP_USER=USER_QUARKUS
+      - APP_USER_PASSWORD=userPass123
+    volumes:
+      - oracle_data:/opt/oracle/oradata
+    networks:
+      - quarkus-network
+
+networks:
+  quarkus-network:
+    driver: bridge
+
+volumes:
+  oracle_data:
