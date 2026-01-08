@@ -101,3 +101,84 @@ Optimizado para rendimiento y seguridad. Deshabilita herramientas de depuración
 Para evitar que se descubra la estructura de la API en entornos productivos, se utiliza la siguiente propiedad en `application.properties`:
 ```properties
 %prod.quarkus.swagger-ui.always-include=false
+```
+
+## 🗄️ Integración con Oracle Database
+
+Este proyecto utiliza **Oracle Database 23ai Free** como motor de persistencia. Esta versión es la recomendada para arquitecturas **ARM64 (Apple Silicon)**, ya que ofrece soporte nativo, evitando los errores de memoria y red (`ORA-12547`) comunes en imágenes emuladas.
+
+### 1. Gestión del Contenedor (Docker)
+
+El contenedor se define en el archivo `docker-compose.yml`. Utiliza los siguientes comandos para gestionar el ciclo de vida de la base de datos:
+
+* **Subir el contenedor:**
+    ```bash
+    docker compose up -d
+    ```
+    *(Crea e inicia la base de datos en segundo plano).*
+
+* **Detener el contenedor (sin borrar datos):**
+    ```bash
+    docker compose stop
+    ```
+
+* **Arrancar el contenedor (si ya existe):**
+    ```bash
+    docker compose start
+    ```
+
+* **Borrar el contenedor y volúmenes:**
+    ```bash
+    docker compose down -v
+    ```
+    *(⚠️ Precaución: El flag `-v` elimina los volúmenes de datos persistidos).*
+
+
+
+### 2. Monitoreo y Verificación
+
+Oracle requiere un tiempo de inicialización interno. Antes de ejecutar la aplicación Quarkus, verifica que la base de datos esté lista:
+
+```bash
+docker logs -f oracle-db-free
+```
+
+Espera a visualizar el mensaje: DATABASE IS READY TO USE!.
+
+### 3. Configuración del Origen de Datos
+   En el archivo src/main/resources/application.properties, asegúrate de tener la siguiente configuración para conectar con el servicio FREEPDB1:
+   
+```properties
+# Configuración JDBC
+quarkus.datasource.db-kind=oracle
+quarkus.datasource.username=system
+quarkus.datasource.password=myPassword123
+quarkus.datasource.jdbc.url=jdbc:oracle:thin:@localhost:1521/FREEPDB1
+
+# Gestión del Esquema (Jakarta Persistence)
+# Se utiliza 'validate' para asegurar que la estructura manual coincida con las Entidades
+jakarta.persistence.schema-generation.database.action=validate
+quarkus.hibernate-orm.log.sql=true
+```
+
+### 4. Creación Manual del Esquema (SQL)
+Dado que la generación automática está desactivada (action=validate), ejecuta el siguiente script en tu instancia de Oracle (usando DBeaver o SQL Plus) antes de iniciar el componente:
+
+```sql
+-- Creación de secuencia para IDs (Requerida por PanacheEntity)
+CREATE SEQUENCE hibernate_sequence START WITH 1 INCREMENT BY 1;
+
+-- Tabla de gestión de usuarios
+CREATE TABLE USUARIOS (
+    id NUMBER(19,0) NOT NULL,
+    username VARCHAR2(255),
+    email VARCHAR2(255),
+    role VARCHAR2(255),
+    PRIMARY KEY (id)
+);
+```
+
+💡 Notas para MacBook Pro (Apple Silicon)
+Arquitectura Nativa: Se utiliza la imagen gvenzl/oracle-free:latest (ARM64) para maximizar el rendimiento y la estabilidad.
+
+Recursos Recomendados: Asigna al menos 6GB de RAM y 4 CPUs en los ajustes de Docker Desktop para evitar bloqueos durante la inicialización de Oracle.
